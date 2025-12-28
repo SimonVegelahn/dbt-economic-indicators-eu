@@ -1,0 +1,15 @@
+# profiles.yml
+# Place this in ~/.dbt/profiles.yml or keep in project root for development
+
+eu_economic_indicators:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: 'data/eu_economic.duckdb'
+      threads: 4
+      
+    prod:
+      type: duckdb
+      path: 'data/eu_economic_prod.duckdb'
+      threads: 8

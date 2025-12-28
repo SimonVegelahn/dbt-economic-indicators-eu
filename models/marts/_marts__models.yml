@@ -1,0 +1,105 @@
+version: 2
+
+models:
+  - name: dim_country
+    description: >
+      Country dimension table containing reference data for EU member states.
+      Includes EU/Eurozone membership status, geographic classification, and
+      data availability summary.
+    columns:
+      - name: country_key
+        description: Surrogate key for the country
+        tests:
+          - unique
+          - not_null
+      - name: country_code
+        description: ISO 2-letter country code (natural key)
+        tests:
+          - unique
+          - not_null
+      - name: country_name
+        description: Full country name
+      - name: eu_member_since
+        description: Date of EU accession (null if not a member)
+      - name: eurozone_member
+        description: Whether the country uses the Euro
+      - name: eu_status
+        description: "Classification: Eurozone, EU (non-Euro), or Non-EU"
+      - name: region
+        description: Geographic region within Europe
+      - name: earliest_gdp_year
+        description: First year of available GDP data
+      - name: latest_gdp_year
+        description: Most recent year of available GDP data
+
+  - name: fct_economic_indicators
+    description: >
+      Core fact table containing monthly economic indicators by country.
+      Uses incremental materialization for efficient processing.
+      Primary table for dashboards and ad-hoc analysis.
+    meta:
+      owner: data-engineering
+      refresh_frequency: daily
+    columns:
+      - name: indicator_key
+        description: Primary key (same as monthly_metrics_key from intermediate)
+        tests:
+          - unique
+          - not_null
+      - name: country_code
+        description: ISO 2-letter country code
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_country')
+              field: country_code
+      - name: reference_date
+        description: First day of the reference month
+        tests:
+          - not_null
+      - name: unemployment_rate_pct
+        description: Monthly unemployment rate (seasonally adjusted)
+      - name: inflation_rate_mom_pct
+        description: Month-over-month inflation rate (HICP)
+      - name: unemployment_mom_change
+        description: Month-over-month change in unemployment rate (pp)
+      - name: unemployment_yoy_change
+        description: Year-over-year change in unemployment rate (pp)
+
+  - name: rpt_annual_economic_summary
+    description: >
+      Pre-aggregated annual summary for executive reporting. Contains
+      rankings, YoY changes, and comparisons to EU averages. Denormalized
+      for dashboard performance.
+    meta:
+      owner: data-engineering
+      refresh_frequency: daily
+      primary_users: ['executives', 'analysts']
+    columns:
+      - name: summary_key
+        description: Primary key (hash of country_code + reference_year)
+        tests:
+          - unique
+          - not_null
+      - name: country_code
+        description: ISO 2-letter country code
+        tests:
+          - not_null
+      - name: reference_year
+        description: Reference year
+        tests:
+          - not_null
+      - name: gdp_rank
+        description: Country's GDP rank within EU for this year (1 = highest)
+      - name: gdp_per_capita_rank
+        description: Country's GDP per capita rank within EU (1 = highest)
+      - name: unemployment_rank
+        description: Country's unemployment rank within EU (1 = lowest/best)
+      - name: inflation_rank
+        description: Country's inflation rank within EU (1 = lowest)
+      - name: gdp_yoy_growth_pct
+        description: Year-over-year GDP growth as percentage
+      - name: share_of_eu_gdp_pct
+        description: Country's share of total EU GDP as percentage
+      - name: gdp_per_capita_vs_eu_avg
+        description: Difference from EU average GDP per capita (EUR)

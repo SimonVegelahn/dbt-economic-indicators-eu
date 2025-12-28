@@ -1,0 +1,67 @@
+name: 'eu_economic_indicators'
+version: '1.0.0'
+config-version: 2
+
+profile: 'eu_economic_indicators'
+
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+docs-paths: ["docs"]
+
+target-path: "target"
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+vars:
+  # Date range for data extraction
+  start_year: 2010
+  end_year: 2024
+  
+  # Countries of focus (ISO 2-letter codes)
+  focus_countries: ['DE', 'FR', 'IT', 'ES', 'NL', 'BE', 'AT', 'PL']
+
+models:
+  eu_economic_indicators:
+    +materialized: view
+    
+    staging:
+      +materialized: view
+      +schema: staging
+      +docs:
+        show: true
+      +tags: ['staging', 'eurostat']
+    
+    intermediate:
+      +materialized: view
+      +schema: intermediate
+      +tags: ['intermediate']
+    
+    marts:
+      +materialized: table
+      +schema: marts
+      +tags: ['marts', 'reporting']
+      
+      # Example of model-specific config
+      fct_economic_indicators:
+        +materialized: incremental
+        +unique_key: indicator_key
+        +on_schema_change: 'append_new_columns'
+
+seeds:
+  eu_economic_indicators:
+    +schema: seeds
+    country_metadata:
+      +column_types:
+        country_code: varchar(2)
+        country_name: varchar(100)
+        eu_member_since: date
+        eurozone_member: boolean
+
+snapshots:
+  eu_economic_indicators:
+    +target_schema: snapshots

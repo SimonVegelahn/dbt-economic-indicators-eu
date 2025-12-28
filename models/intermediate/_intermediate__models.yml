@@ -1,0 +1,68 @@
+version: 2
+
+models:
+  - name: int_country_annual_metrics
+    description: >
+      Annual economic metrics aggregated by country. Combines GDP, population,
+      unemployment, and inflation data at the annual grain. Derived metrics
+      include GDP per capita and data quality flags.
+    columns:
+      - name: annual_metrics_key
+        description: Surrogate key (hash of country_code + reference_year)
+        tests:
+          - unique
+          - not_null
+      - name: country_code
+        description: ISO 2-letter country code
+        tests:
+          - not_null
+      - name: reference_year
+        description: Reference year
+        tests:
+          - not_null
+      - name: gdp_million_eur
+        description: GDP in million EUR at current prices
+      - name: population_count
+        description: Population count on January 1st
+      - name: gdp_per_capita_eur
+        description: Calculated GDP per capita in EUR
+      - name: avg_unemployment_rate_pct
+        description: Average monthly unemployment rate for the year
+      - name: annual_inflation_rate_pct
+        description: Sum of monthly inflation rates (approximate annual)
+      - name: has_complete_unemployment_data
+        description: True if all 12 months of unemployment data are present
+      - name: has_complete_inflation_data
+        description: True if all 12 months of inflation data are present
+
+  - name: int_country_monthly_indicators
+    description: >
+      Monthly economic indicators with trend analysis. Contains unemployment
+      and inflation at monthly grain with lag calculations, year-over-year
+      comparisons, and rolling averages for time series analysis.
+    columns:
+      - name: monthly_metrics_key
+        description: Surrogate key (hash of country_code + reference_date)
+        tests:
+          - unique
+          - not_null
+      - name: country_code
+        description: ISO 2-letter country code
+        tests:
+          - not_null
+      - name: reference_date
+        description: First day of reference month
+        tests:
+          - not_null
+      - name: unemployment_rate_pct
+        description: Monthly unemployment rate
+      - name: inflation_rate_mom_pct
+        description: Month-over-month inflation rate
+      - name: unemployment_rate_prev_month
+        description: Previous month's unemployment rate
+      - name: unemployment_rate_prev_year
+        description: Same month previous year's unemployment rate
+      - name: unemployment_rate_12m_avg
+        description: 12-month rolling average unemployment rate
+      - name: inflation_rate_12m_avg
+        description: 12-month rolling average inflation rate

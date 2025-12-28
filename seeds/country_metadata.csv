@@ -1,0 +1,29 @@
+country_code,country_name,eu_member_since,eurozone_member,region,subregion
+DE,Germany,1957-01-01,true,Western Europe,Central Europe
+FR,France,1957-01-01,true,Western Europe,Western Europe
+IT,Italy,1957-01-01,true,Southern Europe,Southern Europe
+ES,Spain,1986-01-01,true,Southern Europe,Iberian Peninsula
+NL,Netherlands,1957-01-01,true,Western Europe,Benelux
+BE,Belgium,1957-01-01,true,Western Europe,Benelux
+AT,Austria,1995-01-01,true,Western Europe,Central Europe
+PL,Poland,2004-05-01,false,Eastern Europe,Central Europe
+PT,Portugal,1986-01-01,true,Southern Europe,Iberian Peninsula
+GR,Greece,1981-01-01,true,Southern Europe,Balkans
+CZ,Czech Republic,2004-05-01,false,Eastern Europe,Central Europe
+HU,Hungary,2004-05-01,false,Eastern Europe,Central Europe
+SE,Sweden,1995-01-01,false,Northern Europe,Scandinavia
+DK,Denmark,1973-01-01,false,Northern Europe,Scandinavia
+FI,Finland,1995-01-01,true,Northern Europe,Scandinavia
+IE,Ireland,1973-01-01,true,Western Europe,British Isles
+SK,Slovakia,2004-05-01,true,Eastern Europe,Central Europe
+LT,Lithuania,2004-05-01,true,Northern Europe,Baltic States
+LV,Latvia,2004-05-01,true,Northern Europe,Baltic States
+EE,Estonia,2004-05-01,true,Northern Europe,Baltic States
+SI,Slovenia,2004-05-01,true,Southern Europe,Balkans
+HR,Croatia,2013-07-01,true,Southern Europe,Balkans
+BG,Bulgaria,2007-01-01,false,Eastern Europe,Balkans
+RO,Romania,2007-01-01,false,Eastern Europe,Balkans
+LU,Luxembourg,1957-01-01,true,Western Europe,Benelux
+MT,Malta,2004-05-01,true,Southern Europe,Mediterranean Islands
+CY,Cyprus,2004-05-01,true,Southern Europe,Mediterranean Islands
+EU27_2020,European Union (27),,,Aggregate,Aggregate

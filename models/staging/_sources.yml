@@ -1,0 +1,90 @@
+version: 2
+
+sources:
+  - name: eurostat_raw
+    description: >
+      Raw data extracted from Eurostat REST API.
+      Contains economic indicators for EU member states.
+    database: eu_economic  # DuckDB database name derived from file
+    schema: main  # DuckDB default schema
+    
+    tables:
+      - name: raw_gdp
+        description: >
+          Gross Domestic Product and main components from Eurostat dataset nama_10_gdp.
+          Values in current prices, million EUR.
+        columns:
+          - name: geo_code
+            description: ISO 2-letter country code
+            tests:
+              - not_null
+          - name: time_code
+            description: Reference year (YYYY format)
+            tests:
+              - not_null
+          - name: value
+            description: GDP value in million EUR
+        freshness:
+          warn_after: {count: 7, period: day}
+          error_after: {count: 30, period: day}
+        loaded_at_field: extracted_at
+        
+      - name: raw_unemployment
+        description: >
+          Monthly unemployment rate from Eurostat dataset une_rt_m.
+          Seasonally adjusted, percentage of active population.
+        columns:
+          - name: geo_code
+            description: ISO 2-letter country code
+            tests:
+              - not_null
+          - name: time_code
+            description: Reference period (YYYY-MM format)
+            tests:
+              - not_null
+          - name: value
+            description: Unemployment rate as percentage
+        freshness:
+          warn_after: {count: 7, period: day}
+          error_after: {count: 30, period: day}
+        loaded_at_field: extracted_at
+            
+      - name: raw_inflation
+        description: >
+          HICP monthly rate of change from Eurostat dataset prc_hicp_mmor.
+          All-items index, month-over-month percentage change.
+        columns:
+          - name: geo_code
+            description: ISO 2-letter country code
+            tests:
+              - not_null
+          - name: time_code
+            description: Reference period (YYYY-MM format)
+            tests:
+              - not_null
+          - name: value
+            description: Month-over-month inflation rate
+        freshness:
+          warn_after: {count: 7, period: day}
+          error_after: {count: 30, period: day}
+        loaded_at_field: extracted_at
+            
+      - name: raw_population
+        description: >
+          Population on 1 January from Eurostat dataset demo_pjan.
+          Total population count.
+        columns:
+          - name: geo_code
+            description: ISO 2-letter country code
+            tests:
+              - not_null
+          - name: time_code
+            description: Reference year (YYYY format)
+            tests:
+              - not_null
+          - name: value
+            description: Population count
+        freshness:
+          warn_after: {count: 7, period: day}
+          error_after: {count: 30, period: day}
+        loaded_at_field: extracted_at

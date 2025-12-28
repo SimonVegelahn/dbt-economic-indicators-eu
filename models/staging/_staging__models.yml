@@ -1,0 +1,103 @@
+version: 2
+
+models:
+  - name: stg_eurostat__gdp
+    description: >
+      Staged GDP data from Eurostat. Contains annual GDP figures for EU countries
+      in current prices (million EUR).
+    columns:
+      - name: gdp_key
+        description: Surrogate key (hash of country_code + year_code)
+        tests:
+          - unique
+          - not_null
+      - name: country_code
+        description: ISO 2-letter country code
+        tests:
+          - not_null
+      - name: country_name
+        description: Full country name from Eurostat
+      - name: reference_year
+        description: Reference year as integer
+        tests:
+          - not_null
+      - name: reference_date
+        description: First day of reference year as date
+      - name: gdp_million_eur
+        description: GDP value in million EUR at current prices
+        tests:
+          - not_null
+
+  - name: stg_eurostat__unemployment
+    description: >
+      Staged unemployment rate data from Eurostat. Contains monthly seasonally
+      adjusted unemployment rates as percentage of active population.
+    columns:
+      - name: unemployment_key
+        description: Surrogate key (hash of country_code + period_code)
+        tests:
+          - unique
+          - not_null
+      - name: country_code
+        description: ISO 2-letter country code
+        tests:
+          - not_null
+      - name: reference_date
+        description: First day of reference month as date
+        tests:
+          - not_null
+      - name: unemployment_rate_pct
+        description: Unemployment rate as percentage of active population
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 50
+              inclusive: true
+
+  - name: stg_eurostat__inflation
+    description: >
+      Staged HICP inflation data from Eurostat. Contains monthly month-over-month
+      rate of change for the all-items consumer price index.
+    columns:
+      - name: inflation_key
+        description: Surrogate key (hash of country_code + period_code)
+        tests:
+          - unique
+          - not_null
+      - name: country_code
+        description: ISO 2-letter country code
+        tests:
+          - not_null
+      - name: reference_date
+        description: First day of reference month as date
+        tests:
+          - not_null
+      - name: inflation_rate_mom_pct
+        description: Month-over-month inflation rate as percentage change
+
+  - name: stg_eurostat__population
+    description: >
+      Staged population data from Eurostat. Contains annual population counts
+      on 1 January for EU countries.
+    columns:
+      - name: population_key
+        description: Surrogate key (hash of country_code + year_code)
+        tests:
+          - unique
+          - not_null
+      - name: country_code
+        description: ISO 2-letter country code
+        tests:
+          - not_null
+      - name: reference_year
+        description: Reference year as integer
+        tests:
+          - not_null
+      - name: population_count
+        description: Total population count
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 0
+              inclusive: true
