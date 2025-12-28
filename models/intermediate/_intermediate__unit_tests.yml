@@ -1,0 +1,134 @@
+unit_tests:
+  # ============================================
+  # Unit Test: GDP Per Capita Calculation
+  # ============================================
+  # Validates that GDP per capita is correctly calculated
+  # even with edge cases (zero population, null values)
+  
+  - name: test_gdp_per_capita_calculation
+    description: >
+      Verify GDP per capita calculation handles edge cases correctly:
+      - Normal calculation: GDP * 1,000,000 / population
+      - Zero population: should return null (not divide by zero error)
+      - Null GDP: should return null
+    model: int_country_annual_metrics
+    given:
+      - input: ref('stg_eurostat__gdp')
+        rows:
+          - {gdp_key: 'key_1', country_code: 'DE', country_name: 'Germany', reference_year: 2023, reference_date: '2023-01-01', gdp_million_eur: 4000000, unit_code: 'CP_MEUR', unit_description: 'Current prices, million euro', national_accounts_item_code: 'B1GQ', national_accounts_item: 'GDP', source_dataset: 'nama_10_gdp', _extracted_at: '2024-01-15 10:00:00'}
+          - {gdp_key: 'key_2', country_code: 'MT', country_name: 'Malta', reference_year: 2023, reference_date: '2023-01-01', gdp_million_eur: 18000, unit_code: 'CP_MEUR', unit_description: 'Current prices, million euro', national_accounts_item_code: 'B1GQ', national_accounts_item: 'GDP', source_dataset: 'nama_10_gdp', _extracted_at: '2024-01-15 10:00:00'}
+          - {gdp_key: 'key_3', country_code: 'XX', country_name: 'Test Country', reference_year: 2023, reference_date: '2023-01-01', gdp_million_eur: 1000, unit_code: 'CP_MEUR', unit_description: 'Current prices, million euro', national_accounts_item_code: 'B1GQ', national_accounts_item: 'GDP', source_dataset: 'nama_10_gdp', _extracted_at: '2024-01-15 10:00:00'}
+      - input: ref('stg_eurostat__population')
+        rows:
+          - {population_key: 'pop_1', country_code: 'DE', country_name: 'Germany', reference_year: 2023, year_code: '2023', reference_date: '2023-01-01', population_count: 84000000, age_code: 'TOTAL', age_group: 'Total', sex_code: 'T', sex: 'Total', source_dataset: 'demo_pjan', _extracted_at: '2024-01-15 10:00:00'}
+          - {population_key: 'pop_2', country_code: 'MT', country_name: 'Malta', reference_year: 2023, year_code: '2023', reference_date: '2023-01-01', population_count: 520000, age_code: 'TOTAL', age_group: 'Total', sex_code: 'T', sex: 'Total', source_dataset: 'demo_pjan', _extracted_at: '2024-01-15 10:00:00'}
+          - {population_key: 'pop_3', country_code: 'XX', country_name: 'Test Country', reference_year: 2023, year_code: '2023', reference_date: '2023-01-01', population_count: 0, age_code: 'TOTAL', age_group: 'Total', sex_code: 'T', sex: 'Total', source_dataset: 'demo_pjan', _extracted_at: '2024-01-15 10:00:00'}
+      - input: ref('stg_eurostat__unemployment')
+        rows: []
+      - input: ref('stg_eurostat__inflation')
+        rows: []
+    expect:
+      rows:
+        - {country_code: 'DE', reference_year: 2023, gdp_per_capita_eur: 47619.047619}  # 4000000 * 1000000 / 84000000
+        - {country_code: 'MT', reference_year: 2023, gdp_per_capita_eur: 34615.384615}  # 18000 * 1000000 / 520000
+        - {country_code: 'XX', reference_year: 2023, gdp_per_capita_eur: null}          # Division by zero = null
+
+  # ============================================
+  # Unit Test: Unemployment YoY Change
+  # ============================================
+  # Validates year-over-year unemployment change calculation
+  
+  - name: test_unemployment_yoy_change
+    description: >
+      Verify year-over-year unemployment change is calculated correctly:
+      - Change = current_rate - same_month_previous_year
+      - First year should have null YoY (no prior year data)
+    model: int_country_monthly_indicators
+    given:
+      - input: ref('stg_eurostat__unemployment')
+        rows:
+          - {unemployment_key: 'u_1', country_code: 'DE', country_name: 'Germany', period_code: '2022-06', reference_year: 2022, reference_month: 6, reference_date: '2022-06-01', unemployment_rate_pct: 3.0, seasonal_adjustment_code: 'SA', seasonal_adjustment: 'Seasonally adjusted', age_code: 'TOTAL', age_group: 'Total', sex_code: 'T', sex: 'Total', unit_code: 'PC_ACT', unit_description: 'Percentage', source_dataset: 'une_rt_m', _extracted_at: '2024-01-15'}
+          - {unemployment_key: 'u_2', country_code: 'DE', country_name: 'Germany', period_code: '2023-06', reference_year: 2023, reference_month: 6, reference_date: '2023-06-01', unemployment_rate_pct: 2.9, seasonal_adjustment_code: 'SA', seasonal_adjustment: 'Seasonally adjusted', age_code: 'TOTAL', age_group: 'Total', sex_code: 'T', sex: 'Total', unit_code: 'PC_ACT', unit_description: 'Percentage', source_dataset: 'une_rt_m', _extracted_at: '2024-01-15'}
+      - input: ref('stg_eurostat__inflation')
+        rows: []
+      - input: ref('int_country_annual_metrics')
+        rows:
+          - {annual_metrics_key: 'am_1', country_code: 'DE', reference_year: 2022, gdp_million_eur: 3800000, population_count: 83000000, gdp_per_capita_eur: 45783.13, avg_unemployment_rate_pct: 3.1, min_unemployment_rate_pct: 2.9, max_unemployment_rate_pct: 3.3, unemployment_observations: 12, annual_inflation_rate_pct: 8.7, avg_monthly_inflation_pct: 0.725, inflation_observations: 12, has_complete_unemployment_data: true, has_complete_inflation_data: true, _extracted_at: '2024-01-15'}
+          - {annual_metrics_key: 'am_2', country_code: 'DE', reference_year: 2023, gdp_million_eur: 4000000, population_count: 84000000, gdp_per_capita_eur: 47619.05, avg_unemployment_rate_pct: 3.0, min_unemployment_rate_pct: 2.8, max_unemployment_rate_pct: 3.2, unemployment_observations: 12, annual_inflation_rate_pct: 6.0, avg_monthly_inflation_pct: 0.5, inflation_observations: 12, has_complete_unemployment_data: true, has_complete_inflation_data: true, _extracted_at: '2024-01-15'}
+    expect:
+      rows:
+        - {country_code: 'DE', reference_date: '2022-06-01', unemployment_rate_pct: 3.0, unemployment_rate_prev_year: null}
+        - {country_code: 'DE', reference_date: '2023-06-01', unemployment_rate_pct: 2.9, unemployment_rate_prev_year: 3.0}
+
+  # ============================================
+  # Unit Test: Rolling Average Calculation
+  # ============================================
+  # Validates 12-month rolling average for unemployment
+  
+  - name: test_rolling_average_calculation
+    description: >
+      Verify 12-month rolling average is calculated correctly.
+      With only 3 months of data, average should be over those 3 months.
+    model: int_country_monthly_indicators
+    given:
+      - input: ref('stg_eurostat__unemployment')
+        rows:
+          - {unemployment_key: 'u_1', country_code: 'FR', country_name: 'France', period_code: '2023-01', reference_year: 2023, reference_month: 1, reference_date: '2023-01-01', unemployment_rate_pct: 7.0, seasonal_adjustment_code: 'SA', seasonal_adjustment: 'Seasonally adjusted', age_code: 'TOTAL', age_group: 'Total', sex_code: 'T', sex: 'Total', unit_code: 'PC_ACT', unit_description: 'Percentage', source_dataset: 'une_rt_m', _extracted_at: '2024-01-15'}
+          - {unemployment_key: 'u_2', country_code: 'FR', country_name: 'France', period_code: '2023-02', reference_year: 2023, reference_month: 2, reference_date: '2023-02-01', unemployment_rate_pct: 7.2, seasonal_adjustment_code: 'SA', seasonal_adjustment: 'Seasonally adjusted', age_code: 'TOTAL', age_group: 'Total', sex_code: 'T', sex: 'Total', unit_code: 'PC_ACT', unit_description: 'Percentage', source_dataset: 'une_rt_m', _extracted_at: '2024-01-15'}
+          - {unemployment_key: 'u_3', country_code: 'FR', country_name: 'France', period_code: '2023-03', reference_year: 2023, reference_month: 3, reference_date: '2023-03-01', unemployment_rate_pct: 7.1, seasonal_adjustment_code: 'SA', seasonal_adjustment: 'Seasonally adjusted', age_code: 'TOTAL', age_group: 'Total', sex_code: 'T', sex: 'Total', unit_code: 'PC_ACT', unit_description: 'Percentage', source_dataset: 'une_rt_m', _extracted_at: '2024-01-15'}
+      - input: ref('stg_eurostat__inflation')
+        rows: []
+      - input: ref('int_country_annual_metrics')
+        rows:
+          - {annual_metrics_key: 'am_1', country_code: 'FR', reference_year: 2023, gdp_million_eur: 2800000, population_count: 68000000, gdp_per_capita_eur: 41176.47, avg_unemployment_rate_pct: 7.1, min_unemployment_rate_pct: 7.0, max_unemployment_rate_pct: 7.2, unemployment_observations: 3, annual_inflation_rate_pct: null, avg_monthly_inflation_pct: null, inflation_observations: 0, has_complete_unemployment_data: false, has_complete_inflation_data: false, _extracted_at: '2024-01-15'}
+    expect:
+      rows:
+        - {country_code: 'FR', reference_date: '2023-01-01', unemployment_rate_12m_avg: 7.0}        # Only 1 month
+        - {country_code: 'FR', reference_date: '2023-02-01', unemployment_rate_12m_avg: 7.1}        # Avg of 7.0, 7.2
+        - {country_code: 'FR', reference_date: '2023-03-01', unemployment_rate_12m_avg: 7.1}        # Avg of 7.0, 7.2, 7.1
+
+  # ============================================
+  # Unit Test: Data Quality Flag Logic
+  # ============================================
+  # Validates has_complete_unemployment_data flag
+  
+  - name: test_data_quality_flags
+    description: >
+      Verify data quality flags are set correctly:
+      - has_complete_unemployment_data = true when 12 observations
+      - has_complete_inflation_data = true when 12 observations
+    model: int_country_annual_metrics
+    given:
+      - input: ref('stg_eurostat__gdp')
+        rows:
+          - {gdp_key: 'key_1', country_code: 'NL', country_name: 'Netherlands', reference_year: 2023, reference_date: '2023-01-01', gdp_million_eur: 1000000, unit_code: 'CP_MEUR', unit_description: 'Current prices', national_accounts_item_code: 'B1GQ', national_accounts_item: 'GDP', source_dataset: 'nama_10_gdp', _extracted_at: '2024-01-15'}
+      - input: ref('stg_eurostat__population')
+        rows:
+          - {population_key: 'pop_1', country_code: 'NL', country_name: 'Netherlands', reference_year: 2023, year_code: '2023', reference_date: '2023-01-01', population_count: 17500000, age_code: 'TOTAL', age_group: 'Total', sex_code: 'T', sex: 'Total', source_dataset: 'demo_pjan', _extracted_at: '2024-01-15'}
+      - input: ref('stg_eurostat__unemployment')
+        rows:
+          # 12 months of data - should flag as complete
+          - {unemployment_key: 'u_01', country_code: 'NL', country_name: 'Netherlands', period_code: '2023-01', reference_year: 2023, reference_month: 1, reference_date: '2023-01-01', unemployment_rate_pct: 3.5, seasonal_adjustment_code: 'SA', seasonal_adjustment: 'SA', age_code: 'TOTAL', age_group: 'Total', sex_code: 'T', sex: 'Total', unit_code: 'PC_ACT', unit_description: '%', source_dataset: 'une_rt_m', _extracted_at: '2024-01-15'}
+          - {unemployment_key: 'u_02', country_code: 'NL', country_name: 'Netherlands', period_code: '2023-02', reference_year: 2023, reference_month: 2, reference_date: '2023-02-01', unemployment_rate_pct: 3.5, seasonal_adjustment_code: 'SA', seasonal_adjustment: 'SA', age_code: 'TOTAL', age_group: 'Total', sex_code: 'T', sex: 'Total', unit_code: 'PC_ACT', unit_description: '%', source_dataset: 'une_rt_m', _extracted_at: '2024-01-15'}
+          - {unemployment_key: 'u_03', country_code: 'NL', country_name: 'Netherlands', period_code: '2023-03', reference_year: 2023, reference_month: 3, reference_date: '2023-03-01', unemployment_rate_pct: 3.5, seasonal_adjustment_code: 'SA', seasonal_adjustment: 'SA', age_code: 'TOTAL', age_group: 'Total', sex_code: 'T', sex: 'Total', unit_code: 'PC_ACT', unit_description: '%', source_dataset: 'une_rt_m', _extracted_at: '2024-01-15'}
+          - {unemployment_key: 'u_04', country_code: 'NL', country_name: 'Netherlands', period_code: '2023-04', reference_year: 2023, reference_month: 4, reference_date: '2023-04-01', unemployment_rate_pct: 3.5, seasonal_adjustment_code: 'SA', seasonal_adjustment: 'SA', age_code: 'TOTAL', age_group: 'Total', sex_code: 'T', sex: 'Total', unit_code: 'PC_ACT', unit_description: '%', source_dataset: 'une_rt_m', _extracted_at: '2024-01-15'}
+          - {unemployment_key: 'u_05', country_code: 'NL', country_name: 'Netherlands', period_code: '2023-05', reference_year: 2023, reference_month: 5, reference_date: '2023-05-01', unemployment_rate_pct: 3.5, seasonal_adjustment_code: 'SA', seasonal_adjustment: 'SA', age_code: 'TOTAL', age_group: 'Total', sex_code: 'T', sex: 'Total', unit_code: 'PC_ACT', unit_description: '%', source_dataset: 'une_rt_m', _extracted_at: '2024-01-15'}
+          - {unemployment_key: 'u_06', country_code: 'NL', country_name: 'Netherlands', period_code: '2023-06', reference_year: 2023, reference_month: 6, reference_date: '2023-06-01', unemployment_rate_pct: 3.5, seasonal_adjustment_code: 'SA', seasonal_adjustment: 'SA', age_code: 'TOTAL', age_group: 'Total', sex_code: 'T', sex: 'Total', unit_code: 'PC_ACT', unit_description: '%', source_dataset: 'une_rt_m', _extracted_at: '2024-01-15'}
+          - {unemployment_key: 'u_07', country_code: 'NL', country_name: 'Netherlands', period_code: '2023-07', reference_year: 2023, reference_month: 7, reference_date: '2023-07-01', unemployment_rate_pct: 3.5, seasonal_adjustment_code: 'SA', seasonal_adjustment: 'SA', age_code: 'TOTAL', age_group: 'Total', sex_code: 'T', sex: 'Total', unit_code: 'PC_ACT', unit_description: '%', source_dataset: 'une_rt_m', _extracted_at: '2024-01-15'}
+          - {unemployment_key: 'u_08', country_code: 'NL', country_name: 'Netherlands', period_code: '2023-08', reference_year: 2023, reference_month: 8, reference_date: '2023-08-01', unemployment_rate_pct: 3.5, seasonal_adjustment_code: 'SA', seasonal_adjustment: 'SA', age_code: 'TOTAL', age_group: 'Total', sex_code: 'T', sex: 'Total', unit_code: 'PC_ACT', unit_description: '%', source_dataset: 'une_rt_m', _extracted_at: '2024-01-15'}
+          - {unemployment_key: 'u_09', country_code: 'NL', country_name: 'Netherlands', period_code: '2023-09', reference_year: 2023, reference_month: 9, reference_date: '2023-09-01', unemployment_rate_pct: 3.5, seasonal_adjustment_code: 'SA', seasonal_adjustment: 'SA', age_code: 'TOTAL', age_group: 'Total', sex_code: 'T', sex: 'Total', unit_code: 'PC_ACT', unit_description: '%', source_dataset: 'une_rt_m', _extracted_at: '2024-01-15'}
+          - {unemployment_key: 'u_10', country_code: 'NL', country_name: 'Netherlands', period_code: '2023-10', reference_year: 2023, reference_month: 10, reference_date: '2023-10-01', unemployment_rate_pct: 3.5, seasonal_adjustment_code: 'SA', seasonal_adjustment: 'SA', age_code: 'TOTAL', age_group: 'Total', sex_code: 'T', sex: 'Total', unit_code: 'PC_ACT', unit_description: '%', source_dataset: 'une_rt_m', _extracted_at: '2024-01-15'}
+          - {unemployment_key: 'u_11', country_code: 'NL', country_name: 'Netherlands', period_code: '2023-11', reference_year: 2023, reference_month: 11, reference_date: '2023-11-01', unemployment_rate_pct: 3.5, seasonal_adjustment_code: 'SA', seasonal_adjustment: 'SA', age_code: 'TOTAL', age_group: 'Total', sex_code: 'T', sex: 'Total', unit_code: 'PC_ACT', unit_description: '%', source_dataset: 'une_rt_m', _extracted_at: '2024-01-15'}
+          - {unemployment_key: 'u_12', country_code: 'NL', country_name: 'Netherlands', period_code: '2023-12', reference_year: 2023, reference_month: 12, reference_date: '2023-12-01', unemployment_rate_pct: 3.5, seasonal_adjustment_code: 'SA', seasonal_adjustment: 'SA', age_code: 'TOTAL', age_group: 'Total', sex_code: 'T', sex: 'Total', unit_code: 'PC_ACT', unit_description: '%', source_dataset: 'une_rt_m', _extracted_at: '2024-01-15'}
+      - input: ref('stg_eurostat__inflation')
+        rows:
+          # Only 6 months - should flag as incomplete
+          - {inflation_key: 'i_01', country_code: 'NL', country_name: 'Netherlands', period_code: '2023-01', reference_year: 2023, reference_month: 1, reference_date: '2023-01-01', inflation_rate_mom_pct: 0.5, coicop_code: 'CP00', coicop_category: 'All items', source_dataset: 'prc_hicp_mmor', _extracted_at: '2024-01-15'}
+          - {inflation_key: 'i_02', country_code: 'NL', country_name: 'Netherlands', period_code: '2023-02', reference_year: 2023, reference_month: 2, reference_date: '2023-02-01', inflation_rate_mom_pct: 0.5, coicop_code: 'CP00', coicop_category: 'All items', source_dataset: 'prc_hicp_mmor', _extracted_at: '2024-01-15'}
+          - {inflation_key: 'i_03', country_code: 'NL', country_name: 'Netherlands', period_code: '2023-03', reference_year: 2023, reference_month: 3, reference_date: '2023-03-01', inflation_rate_mom_pct: 0.5, coicop_code: 'CP00', coicop_category: 'All items', source_dataset: 'prc_hicp_mmor', _extracted_at: '2024-01-15'}
+          - {inflation_key: 'i_04', country_code: 'NL', country_name: 'Netherlands', period_code: '2023-04', reference_year: 2023, reference_month: 4, reference_date: '2023-04-01', inflation_rate_mom_pct: 0.5, coicop_code: 'CP00', coicop_category: 'All items', source_dataset: 'prc_hicp_mmor', _extracted_at: '2024-01-15'}
+          - {inflation_key: 'i_05', country_code: 'NL', country_name: 'Netherlands', period_code: '2023-05', reference_year: 2023, reference_month: 5, reference_date: '2023-05-01', inflation_rate_mom_pct: 0.5, coicop_code: 'CP00', coicop_category: 'All items', source_dataset: 'prc_hicp_mmor', _extracted_at: '2024-01-15'}
+          - {inflation_key: 'i_06', country_code: 'NL', country_name: 'Netherlands', period_code: '2023-06', reference_year: 2023, reference_month: 6, reference_date: '2023-06-01', inflation_rate_mom_pct: 0.5, coicop_code: 'CP00', coicop_category: 'All items', source_dataset: 'prc_hicp_mmor', _extracted_at: '2024-01-15'}
+    expect:
+      rows:
+        - {country_code: 'NL', reference_year: 2023, has_complete_unemployment_data: true, has_complete_inflation_data: false, unemployment_observations: 12, inflation_observations: 6}

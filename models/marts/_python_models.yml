@@ -1,0 +1,136 @@
+version: 2
+
+models:
+  # ============================================
+  # Python Model: Anomaly Detection
+  # ============================================
+  - name: py_anomaly_detection
+    description: >
+      Statistical anomaly detection for economic indicators.
+      Uses z-score, IQR, and rate-of-change methods to identify
+      outliers that may indicate data quality issues or economic shocks.
+    meta:
+      owner: data-science
+      model_type: python
+      refresh_frequency: daily
+    config:
+      tags: ['python', 'anomaly_detection']
+    columns:
+      - name: indicator_key
+        description: Foreign key to fct_economic_indicators
+        tests:
+          - not_null
+      - name: country_code
+        description: ISO 2-letter country code
+        tests:
+          - not_null
+      - name: reference_date
+        description: Reference date for the indicator
+      - name: unemployment_z_score
+        description: Z-score for unemployment rate (>3 or <-3 is anomalous)
+      - name: inflation_z_score
+        description: Z-score for inflation rate
+      - name: is_unemployment_anomaly
+        description: True if unemployment reading is anomalous
+      - name: is_inflation_anomaly
+        description: True if inflation reading is anomalous
+      - name: is_any_anomaly
+        description: True if any indicator is anomalous
+      - name: anomaly_severity_score
+        description: Composite severity score (0-100)
+
+  # ============================================
+  # Python Model: Unemployment Forecast
+  # ============================================
+  - name: py_unemployment_forecast
+    description: >
+      6-month unemployment rate forecasts using multiple statistical methods.
+      Provides ensemble forecast with prediction intervals.
+      
+      Methods used:
+      - Exponential Smoothing
+      - Holt's Linear Trend
+      - Linear Regression
+      
+      Note: This is a demonstration model. Production forecasting would
+      use more sophisticated methods (ARIMA, Prophet, ML models).
+    meta:
+      owner: data-science
+      model_type: python
+      refresh_frequency: weekly
+    config:
+      tags: ['python', 'forecasting', 'ml']
+    columns:
+      - name: country_code
+        description: ISO 2-letter country code
+        tests:
+          - not_null
+      - name: forecast_date
+        description: Date being forecasted
+        tests:
+          - not_null
+      - name: forecast_horizon_months
+        description: Months ahead from last actual (1-6)
+      - name: last_actual_date
+        description: Most recent date with actual data
+      - name: last_actual_value
+        description: Most recent actual unemployment rate
+      - name: forecast_exp_smoothing
+        description: Forecast from exponential smoothing method
+      - name: forecast_holt
+        description: Forecast from Holt's linear trend method
+      - name: forecast_linear_reg
+        description: Forecast from linear regression
+      - name: forecast_ensemble
+        description: Average of all forecast methods (recommended)
+      - name: prediction_interval_lower
+        description: Lower bound of 95% prediction interval
+      - name: prediction_interval_upper
+        description: Upper bound of 95% prediction interval
+      - name: forecast_confidence
+        description: "Confidence level: high, medium, or low"
+      - name: min_training_samples
+        description: Number of historical observations used
+
+  # ============================================
+  # Python Model: Data Quality Scores
+  # ============================================
+  - name: py_data_quality_scores
+    description: >
+      Comprehensive data quality scoring by country.
+      Evaluates completeness, timeliness, validity, and consistency.
+      Used for monitoring and prioritizing data remediation.
+    meta:
+      owner: data-engineering
+      model_type: python
+      refresh_frequency: daily
+    config:
+      tags: ['python', 'data_quality', 'monitoring']
+    columns:
+      - name: country_code
+        description: ISO 2-letter country code
+        tests:
+          - unique
+          - not_null
+      - name: total_records
+        description: Total number of monthly records for this country
+      - name: completeness_score
+        description: Completeness score (0-100)
+      - name: timeliness_score
+        description: Timeliness score (0-100)
+      - name: validity_score
+        description: Validity score (0-100)
+      - name: consistency_score
+        description: Consistency score (0-100)
+      - name: overall_quality_score
+        description: Weighted average of all quality dimensions
+      - name: quality_grade
+        description: "Letter grade: A (>90), B (>80), C (>70), D (>60), F (<60)"
+      - name: primary_issue
+        description: Main quality dimension needing improvement
+      - name: requires_attention
+        description: True if quality score is below 70
+      - name: days_since_latest_data
+        description: Days since most recent data point
+      - name: scored_at
+        description: Timestamp when scoring was performed

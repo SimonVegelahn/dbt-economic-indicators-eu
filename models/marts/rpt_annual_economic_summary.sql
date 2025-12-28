@@ -1,7 +1,8 @@
 {{
     config(
         materialized='table',
-        tags=['marts', 'summary']
+        tags=['marts', 'summary'],
+        contract={'enforced': true}
     )
 }}
 

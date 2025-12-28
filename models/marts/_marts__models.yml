@@ -6,31 +6,58 @@ models:
       Country dimension table containing reference data for EU member states.
       Includes EU/Eurozone membership status, geographic classification, and
       data availability summary.
+    config:
+      contract:
+        enforced: true
     columns:
       - name: country_key
         description: Surrogate key for the country
+        data_type: varchar
+        constraints:
+          - type: not_null
+          - type: unique
         tests:
           - unique
           - not_null
       - name: country_code
         description: ISO 2-letter country code (natural key)
+        data_type: varchar
+        constraints:
+          - type: not_null
+          - type: unique
         tests:
           - unique
           - not_null
       - name: country_name
         description: Full country name
+        data_type: varchar
       - name: eu_member_since
         description: Date of EU accession (null if not a member)
+        data_type: date
       - name: eurozone_member
         description: Whether the country uses the Euro
-      - name: eu_status
-        description: "Classification: Eurozone, EU (non-Euro), or Non-EU"
+        data_type: boolean
       - name: region
         description: Geographic region within Europe
+        data_type: varchar
+      - name: subregion
+        description: Geographic subregion within Europe
+        data_type: varchar
+      - name: eu_status
+        description: "Classification: Eurozone, EU (non-Euro), or Non-EU"
+        data_type: varchar
       - name: earliest_gdp_year
         description: First year of available GDP data
+        data_type: integer
       - name: latest_gdp_year
         description: Most recent year of available GDP data
+        data_type: integer
+      - name: years_of_gdp_data
+        description: Count of years with GDP data
+        data_type: bigint
+      - name: _loaded_at
+        description: Timestamp when record was loaded
+        data_type: timestamp
 
   - name: fct_economic_indicators
     description: >
@@ -40,31 +67,88 @@ models:
     meta:
       owner: data-engineering
       refresh_frequency: daily
+    config:
+      contract:
+        enforced: true
     columns:
       - name: indicator_key
         description: Primary key (same as monthly_metrics_key from intermediate)
+        data_type: varchar
+        constraints:
+          - type: not_null
+          - type: unique
         tests:
           - unique
           - not_null
       - name: country_code
         description: ISO 2-letter country code
+        data_type: varchar
+        constraints:
+          - type: not_null
         tests:
           - not_null
           - relationships:
               to: ref('dim_country')
               field: country_code
+      - name: country_key
+        description: Foreign key to dim_country
+        data_type: varchar
+      - name: reference_year
+        description: Reference year
+        data_type: integer
+        constraints:
+          - type: not_null
+      - name: reference_month
+        description: Reference month (1-12)
+        data_type: integer
+        constraints:
+          - type: not_null
       - name: reference_date
         description: First day of the reference month
+        data_type: date
+        constraints:
+          - type: not_null
         tests:
           - not_null
       - name: unemployment_rate_pct
         description: Monthly unemployment rate (seasonally adjusted)
+        data_type: double
       - name: inflation_rate_mom_pct
         description: Month-over-month inflation rate (HICP)
+        data_type: double
+      - name: unemployment_rate_prev_month
+        description: Previous month unemployment rate
+        data_type: double
+      - name: unemployment_rate_prev_year
+        description: Same month previous year unemployment rate
+        data_type: double
+      - name: unemployment_rate_12m_avg
+        description: 12-month rolling average unemployment rate
+        data_type: double
+      - name: inflation_rate_12m_avg
+        description: 12-month rolling average inflation rate
+        data_type: double
       - name: unemployment_mom_change
         description: Month-over-month change in unemployment rate (pp)
+        data_type: double
       - name: unemployment_yoy_change
         description: Year-over-year change in unemployment rate (pp)
+        data_type: double
+      - name: annual_gdp_million_eur
+        description: Annual GDP for context
+        data_type: double
+      - name: annual_population_count
+        description: Annual population for context
+        data_type: double
+      - name: annual_gdp_per_capita_eur
+        description: Annual GDP per capita for context
+        data_type: double
+      - name: _loaded_at
+        description: Timestamp when record was loaded
+        data_type: timestamp
+      - name: _dbt_invocation_id
+        description: dbt invocation ID for lineage tracking
+        data_type: varchar
 
   - name: rpt_annual_economic_summary
     description: >
@@ -75,31 +159,105 @@ models:
       owner: data-engineering
       refresh_frequency: daily
       primary_users: ['executives', 'analysts']
+    config:
+      contract:
+        enforced: true
     columns:
       - name: summary_key
         description: Primary key (hash of country_code + reference_year)
+        data_type: varchar
+        constraints:
+          - type: not_null
+          - type: unique
         tests:
           - unique
           - not_null
       - name: country_code
         description: ISO 2-letter country code
+        data_type: varchar
+        constraints:
+          - type: not_null
         tests:
           - not_null
+      - name: country_key
+        description: Foreign key to dim_country
+        data_type: varchar
       - name: reference_year
         description: Reference year
+        data_type: integer
+        constraints:
+          - type: not_null
         tests:
           - not_null
+      - name: gdp_million_eur
+        description: GDP in million EUR at current prices
+        data_type: double
+      - name: population_count
+        description: Population count on January 1st
+        data_type: double
+      - name: gdp_per_capita_eur
+        description: GDP per capita in EUR
+        data_type: double
+      - name: avg_unemployment_rate_pct
+        description: Average unemployment rate for the year
+        data_type: double
+      - name: annual_inflation_rate_pct
+        description: Sum of monthly inflation rates
+        data_type: double
       - name: gdp_rank
         description: Country's GDP rank within EU for this year (1 = highest)
+        data_type: bigint
       - name: gdp_per_capita_rank
         description: Country's GDP per capita rank within EU (1 = highest)
+        data_type: bigint
       - name: unemployment_rank
         description: Country's unemployment rank within EU (1 = lowest/best)
+        data_type: bigint
       - name: inflation_rank
         description: Country's inflation rank within EU (1 = lowest)
+        data_type: bigint
       - name: gdp_yoy_growth_pct
         description: Year-over-year GDP growth as percentage
+        data_type: double
+      - name: unemployment_yoy_change_pp
+        description: Year-over-year unemployment change in percentage points
+        data_type: double
+      - name: inflation_yoy_change_pp
+        description: Year-over-year inflation change in percentage points
+        data_type: double
       - name: share_of_eu_gdp_pct
         description: Country's share of total EU GDP as percentage
+        data_type: double
+      - name: share_of_eu_population_pct
+        description: Country's share of EU population as percentage
+        data_type: double
       - name: gdp_per_capita_vs_eu_avg
         description: Difference from EU average GDP per capita (EUR)
+        data_type: double
+      - name: unemployment_vs_eu_avg_pp
+        description: Difference from EU average unemployment (pp)
+        data_type: double
+      - name: inflation_vs_eu_avg_pp
+        description: Difference from EU average inflation (pp)
+        data_type: double
+      - name: has_complete_unemployment_data
+        description: True if all 12 months of unemployment data are present
+        data_type: boolean
+      - name: has_complete_inflation_data
+        description: True if all 12 months of inflation data are present
+        data_type: boolean
+      - name: country_name
+        description: Full country name (denormalized)
+        data_type: varchar
+      - name: eu_status
+        description: EU membership status (denormalized)
+        data_type: varchar
+      - name: eurozone_member
+        description: Eurozone membership (denormalized)
+        data_type: boolean
+      - name: region
+        description: Geographic region (denormalized)
+        data_type: varchar
+      - name: _loaded_at
+        description: Timestamp when record was loaded
+        data_type: timestamp

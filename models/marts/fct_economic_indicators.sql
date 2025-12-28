@@ -3,7 +3,8 @@
         materialized='incremental',
         unique_key='indicator_key',
         on_schema_change='append_new_columns',
-        tags=['marts', 'facts', 'incremental']
+        tags=['marts', 'facts', 'incremental'],
+        contract={'enforced': true}
     )
 }}
 
