@@ -42,7 +42,7 @@ data_availability as (
 final as (
     select
         -- Surrogate key
-        {{ dbt_utils.generate_surrogate_key(['cs.country_code']) }} as country_key,
+        {{ generate_surrogate_key(['cs.country_code']) }} as country_key,
         
         -- Natural key
         cs.country_code,

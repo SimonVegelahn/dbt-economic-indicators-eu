@@ -64,15 +64,10 @@ where (non_null_rows::float / total_rows) < {{ threshold }}
 
 
 {% macro generate_schema_name(custom_schema_name, node) %}
-/*
-    Custom schema naming convention.
-    
-    In dev: prefix with target name (e.g., dev_staging)
-    In prod: use custom schema name directly (e.g., staging)
-*/
+{# Custom schema naming: dev = dev_schema, prod = schema #}
 {% if target.name == 'prod' %}
-    {{ custom_schema_name | trim }}
+{{ custom_schema_name | trim }}
 {% else %}
-    {{ target.name }}_{{ custom_schema_name | trim }}
+{{ target.name }}_{{ custom_schema_name | trim }}
 {% endif %}
 {% endmacro %}

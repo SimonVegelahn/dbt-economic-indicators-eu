@@ -61,7 +61,7 @@ inflation_annual as (
 joined as (
     select
         -- Keys
-        {{ dbt_utils.generate_surrogate_key(['g.country_code', 'g.reference_year']) }} as annual_metrics_key,
+        {{ generate_surrogate_key(['g.country_code', 'g.reference_year']) }} as annual_metrics_key,
         g.country_code,
         g.reference_year,
         

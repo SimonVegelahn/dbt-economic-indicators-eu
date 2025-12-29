@@ -22,7 +22,7 @@ with source as (
 renamed as (
     select
         -- Surrogate key
-        {{ dbt_utils.generate_surrogate_key(['geo_code', 'time_code']) }} as unemployment_key,
+        {{ generate_surrogate_key(['geo_code', 'time_code']) }} as unemployment_key,
         
         -- Dimensions
         geo_code as country_code,

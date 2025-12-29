@@ -58,7 +58,7 @@ ranked as (
 final as (
     select
         -- Keys
-        {{ dbt_utils.generate_surrogate_key(['r.country_code', 'r.reference_year']) }} as summary_key,
+        {{ generate_surrogate_key(['r.country_code', 'r.reference_year']) }} as summary_key,
         r.country_code,
         cd.country_key,
         r.reference_year,

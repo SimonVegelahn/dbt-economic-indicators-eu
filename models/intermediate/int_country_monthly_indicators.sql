@@ -63,7 +63,7 @@ monthly_spine as (
 joined as (
     select
         -- Keys
-        {{ dbt_utils.generate_surrogate_key(['ms.country_code', 'ms.reference_date']) }} as monthly_metrics_key,
+        {{ generate_surrogate_key(['ms.country_code', 'ms.reference_date']) }} as monthly_metrics_key,
         
         -- Dimensions
         ms.country_code,
