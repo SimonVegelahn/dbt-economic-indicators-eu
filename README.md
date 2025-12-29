@@ -34,6 +34,12 @@ This project extracts economic indicators from the [Eurostat REST API](https://e
 
 Core EU economies: Germany (DE), France (FR), Italy (IT), Spain (ES), Netherlands (NL), Belgium (BE), Austria (AT), Poland (PL), plus EU27 aggregate.
 
+## Data Visualization
+
+![EU Economic Indicators](docs/economic_indicators_visualization.png)
+
+*Sample visualization showing unemployment trends and GDP comparison across major EU economies. Generated from the dbt marts layer data.*
+
 ## Architecture
 
 ```
@@ -83,7 +89,6 @@ eu_economic_indicators/
 │   │
 │   └── marts/                      # Consumption layer
 │       ├── _marts__models.yml      # ⭐ MODEL CONTRACTS
-│       ├── _semantic_models.yml    # ⭐ METRICFLOW DEFINITIONS
 │       ├── _python_models.yml      # Python model docs
 │       ├── dim_country.sql         # Dimension table
 │       ├── fct_economic_indicators.sql  # Incremental fact
@@ -110,7 +115,6 @@ eu_economic_indicators/
 │
 ├── dbt_project.yml
 ├── profiles.yml
-├── packages.yml
 └── README.md
 ```
 
@@ -135,9 +139,6 @@ source venv/bin/activate  # Windows: venv\Scripts\activate
 
 # Install dependencies
 pip install -r requirements.txt
-
-# Install dbt packages
-dbt deps
 ```
 
 ### Extract Data

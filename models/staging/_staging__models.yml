@@ -50,10 +50,6 @@ models:
         description: Unemployment rate as percentage of active population
         tests:
           - not_null
-          - dbt_utils.accepted_range:
-              min_value: 0
-              max_value: 50
-              inclusive: true
 
   - name: stg_eurostat__inflation
     description: >
@@ -98,6 +94,3 @@ models:
         description: Total population count
         tests:
           - not_null
-          - dbt_utils.accepted_range:
-              min_value: 0
-              inclusive: true
